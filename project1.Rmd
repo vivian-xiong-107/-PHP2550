@@ -1,0 +1,367 @@
+---
+title: "PHP2550_Project1"
+author: "Caiwei Xiong"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
+```
+
+```{r, echo=FALSE,include=FALSE}
+library("tidyverse")
+library("HDSinRdata")
+library("gtsummary")
+library("gt")
+library("webshot2")
+library("kableExtra")
+library("mice")
+library("mediation")
+library("dplyr")
+```
+
+### Data Preprocessing
+
+During the period of fetal development, the nervous system exhibits heightened vulnerability to the adverse impacts of environmental toxicants, such as the components found in cigarettes. Neurodevelopmental outcomes can be linked to alterations in brain structure and function, resulting in diminished psychomotor abilities and heightened susceptibility to behavioural difficulties. Tobacco smoke comprises several hazardous compounds, such as lead and cadmium, both of which have the potential to impact the maturing neurological system. Several studies have revealed the adverse effects of exposure to environmental tobacco smoke (ETS) during pregnancy on infant neurodevelopment, specifically highlighting the increased risk of developmental delay. Furthermore, some studies have indicated that exposure to mother passive smoking during pregnancy might potentially have an influence on the behavioural development of offspring, specifically in relation to aggressive and externalizing tendencies. [@polanska2017a] This study aims to investigate the impact of self-regulation difficulties in the relationship between smoking during pregnancy (SDP) and exposure to environmental tobacco smoke (ETS) on the levels of substance use (SU) and severity of externalizing behaviour (EXT) over a period of time.
+
+```{r, echo=FALSE}
+project_one = read.csv("/Users/xiongcaiwei/Downloads/project1.csv")
+```
+
+It appears highly irrational for an individual to consume a total of 44,989 cigarettes in a single day. This phenomenon might perhaps be attributed to errors in the recording phase of the data gathering procedure. In the present scenario, it was determined that the information pertaining to the aforementioned individual would be excluded from the dataset. In light of our investigation, it has come to our attention that Black and Mild is a specific brand of tobacco cigar. For the sake of expediency, we shall henceforth consider tobacco cigars as synonymous with conventional cigarettes. One of the participants provided a range of values between 20 and 25. In order to simplify the data, we opted to calculate the median value, which resulted in an average of 23 cigarettes a day.
+
+```{r, echo=FALSE}
+# Data preprocessing
+index_number = 0
+get_extreme_number = function(data_set_name){
+  for(i in (1:dim(data_set_name)[1])){
+    if(data_set_name$mom_numcig[i] == "44989")
+      index_number = i
+  }
+  return(index_number)
+}
+project_one = project_one[-get_extreme_number(project_one), ]
+```
+
+```{r, echo=FALSE}
+project_one$mom_numcig[project_one$mom_numcig == 'None'] = '0'
+project_one$mom_numcig[project_one$mom_numcig == '2 black and miles a day'] = '2'
+project_one$mom_numcig[project_one$mom_numcig == '20-25'] = '23'
+project_one$mom_numcig = as.numeric(project_one$mom_numcig)
+```
+
+Regarding the variable "\texttt{momcig}" which denotes the frequency of cigarette smoking over the last 30 days, it was observed that a participant reported smoking for a duration of 40 days, surpassing the maximum allowable period. This phenomenon might perhaps be attributed to errors in the recording procedure that occurred during data collecting. In this instance, it was determined that the information pertaining to the aforementioned individual would be excluded from the dataset. There were huge amount of missing values within this dataset, but there was some missing values can be implemented by using informations from another variable. For instance, if the answer from have children ever tried sigarette, e-sigarette, and marijuana is 0, when can definitely implement the value for number of sigarette, e-sigarette, and marijuana in the past 30 days as 0.
+
+```{r, echo=FALSE}
+project_one = project_one[- which(project_one$momcig == 40), ]
+```
+
+```{r, echo=FALSE}
+project_one[project_one == ''] = NA
+```
+
+```{r, echo=FALSE}
+project_one$income[project_one$income == '250, 000'] = '250000'
+```
+
+```{r, echo=FALSE}
+project_one = project_one %>% 
+  mutate(num_cigs_30 = case_when(cig_ever == 0 ~ 0,
+                                 cig_ever == 1 ~ 0, 
+                                 TRUE ~ NA))
+project_one$num_e_cigs_30[which(project_one$e_cig_ever == 0)] = 0
+project_one$num_mj_30[which(project_one$mj_ever == 0)] = 0
+project_one$num_alc_30[which(project_one$alc_ever == 0)] = 0
+```
+
+```{r, echo=FALSE}
+project_one$mom_smoke_16wk = str_replace(project_one$mom_smoke_16wk, "2=No","2")
+project_one$mom_smoke_16wk = str_replace(project_one$mom_smoke_16wk, "1=Yes","1")
+
+project_one$mom_smoke_22wk = str_replace(project_one$mom_smoke_22wk, "2=No","2")
+project_one$mom_smoke_22wk = str_replace(project_one$mom_smoke_22wk, "1=Yes","1")
+
+project_one$mom_smoke_32wk = str_replace(project_one$mom_smoke_32wk, "2=No","2")
+project_one$mom_smoke_32wk = str_replace(project_one$mom_smoke_32wk, "1=Yes","1")
+
+project_one$mom_smoke_pp1 = str_replace(project_one$mom_smoke_pp1, "2=No","2")
+project_one$mom_smoke_pp1 = str_replace(project_one$mom_smoke_pp1, "1=Yes","1")
+
+project_one$mom_smoke_pp2 = str_replace(project_one$mom_smoke_pp2, "2=No","2")
+project_one$mom_smoke_pp2 = str_replace(project_one$mom_smoke_pp2, "1=Yes","1")
+
+
+project_one$mom_smoke_pp12wk = str_replace(project_one$mom_smoke_pp12wk, "2=No","2")
+project_one$mom_smoke_pp12wk = str_replace(project_one$mom_smoke_pp12wk, "1=Yes","1")
+
+project_one$mom_smoke_pp6mo = str_replace(project_one$mom_smoke_pp6mo, "2=No","2")
+project_one$mom_smoke_pp6mo = str_replace(project_one$mom_smoke_pp6mo, "1=Yes","1")
+```
+
+The variable \texttt{swan\_hyperactive} is utilized to reflect the cumulative total of responses on the SWAN Rating Scale Questions 1-9. A score equal to or over 6 is indicative of the kid possibly having ADHD of the Hyperactive/Impulsive kind. In this scenario, the variable \texttt{swan\_hyperactive} may be transformed into a binary variable that indicates the likelihood of a kid developing ADHD of the Hyperactive/Impulsive kind. The variable \texttt{swan\_inattentive} represents the cumulative total of responses on questions 1-9 of the SWAN Rating Scale. A score equal to or more than 6 suggests that the kid is likely to have ADHD of the Inattentive kind. In this scenario, it is possible to transform the variable \texttt{swan\_inattentive} into a binary form, therefore indicating the likelihood of a kid being diagnosed with ADHD-Inattentive type.
+
+```{r, echo=FALSE}
+project_one = project_one %>%
+  mutate(swan_hyperactive = case_when(swan_hyperactive < 6 ~ 0,
+                                      swan_hyperactive >= 6 ~ 1))
+```
+
+```{r, echo=FALSE}
+project_one = project_one %>%
+  mutate(swan_inattentive = case_when(swan_inattentive < 6 ~ 0,
+                                      swan_inattentive >= 6 ~ 1))
+```
+
+To get a comprehensive understanding of the baseline features distinguishing children with a higher likelihood of having ADHD-inattentive type from those without, we have constructed the subsequent table. Based on the findings presented in Table 1, it is evident that there exists a statistically significant difference in the variable labelled as \texttt{pedu} between the two groups under investigation.
+
+```{r, echo=FALSE,warning=FALSE}
+project_one %>%
+  dplyr::select(c(page, psex, swan_inattentive, smoke_exposure_6mo, pedu,
+                                    mom_smoke_16wk, mom_smoke_22wk, 
+                                    mom_smoke_32wk,
+                                    smoke_exposure_6mo,
+           smoke_exposure_12mo, smoke_exposure_2yr, smoke_exposure_3yr,
+           smoke_exposure_4yr, smoke_exposure_5yr)) %>%
+  tbl_summary(by = "swan_inattentive",
+              statistic = list(all_continuous() ~ "{mean} ({sd})"),
+              missing_text = "MISSING") %>%
+  add_p() %>%
+  modify_header(label = "**Characteristics**", 
+                stat_1 = "**Likely Inattentive type**",
+                stat_2 = "**Not likely Inattentive type**") %>%
+  as_kable_extra(booktabs = TRUE,
+                 format = "latex",
+                 longtable = TRUE,
+                 caption = "Baseline characteristics of children with or 
+                 without higher possiblity to have ADHD-Inattentive type") %>%
+  kable_styling(font_size = 7, latex_options = "hold_position")
+```
+
+The table below presents the baseline characteristics of children with and without a higher likelihood of having ADHD-Hyperactive/Impulsive type. Based on the analysis conducted using Table 2, it was seen that the variables \texttt{smoke\_exposure\_6mo}, \texttt{smoke\_exposure\_2yr}, \texttt{smoke\_exposure\_3yr}, and \texttt{smoke\_exposure\_5yr} exhibited a statistically significant difference between the two groups.
+
+```{r, echo=FALSE,warning=FALSE}
+project_one %>%
+  dplyr::select(c(page, psex, swan_hyperactive, smoke_exposure_6mo, pedu,
+                                    mom_smoke_16wk, mom_smoke_22wk, 
+                                    mom_smoke_32wk,
+                                    smoke_exposure_6mo,
+                                    smoke_exposure_12mo, 
+           smoke_exposure_2yr, smoke_exposure_3yr,
+           smoke_exposure_4yr, smoke_exposure_5yr)) %>%
+  tbl_summary(by = "swan_hyperactive",
+              statistic = list(all_continuous() ~ "{mean} ({sd})"),
+              missing_text = "MISSING") %>%
+  add_p() %>%
+  modify_header(label = "**Characteristics**", 
+                stat_1 = "**Likely Hyperactive/Impulsive type**",
+                stat_2 = "**Not likely Hyperactive/Impulsive type**") %>%
+  as_kable_extra(booktabs = TRUE,
+                 format = "latex",
+                 longtable = TRUE,
+                 caption = "Baseline characteristics of children with or 
+                 without higher possiblity to have Hyperactive/Impulsive type.") %>%
+  kable_styling(font_size = 7, latex_options = "hold_position")
+```
+
+We made the decision to create a variable called \texttt{mom\_smoke} that will indicate if the mother smoked cigarettes throughout pregnancy at 16, 22, and 32 weeks. In this particular scenario, the variable \texttt{mom\_smoke} would be categorized as a binary variable: \texttt{mom\_smoke} $=\begin{cases} 1 \ \ \ \ \ \ \ \text{Smoke during pregnancy} \\ 0 \ \ \ \ \ \ \ \text{Not smoke} \end{cases}$. Regarding the smoking status of the mother throughout the postpartum period, a variable called \texttt{mom\_smoke\_pp} may be created to show whether the mother smoked during the first, second, 12-week, and 6-month postpartum stages. Therefore the \texttt{mom\_smoke\_pp} would be a binary variable: \texttt{mom\_smoke\_pp} $= \begin{cases} 1\ \ \ \ \ \ \text{Smoke at pospartum stages} \\ 0 \ \ \ \ \ \ \text{Otherwise} \end{cases}$.
+
+```{r, echo=FALSE}
+project_one$mom_smoke[project_one$mom_smoke_16wk == '1'] = 1
+project_one$mom_smoke[project_one$mom_smoke_22wk == '1'] = 1
+project_one$mom_smoke[project_one$mom_smoke_32wk == '1'] = 1
+project_one$mom_smoke[project_one$mom_smoke_16wk == '2'&
+                        project_one$mom_smoke_22wk == '2' &
+                        project_one$mom_smoke_32wk == '2'] = 0
+```
+
+```{r, echo=FALSE}
+project_one$mom_smoke_pp[project_one$mom_smoke_pp1 == '1'] = 1
+project_one$mom_smoke_pp[project_one$mom_smoke_pp2 == '1'] = 1
+project_one$mom_smoke_pp[project_one$mom_smoke_pp12wk == '1'] = 1
+project_one$mom_smoke_pp[project_one$mom_smoke_pp6mo == '1'] = 1
+```
+
+Based on the observations derived from the dataset, it is evident that certain individuals had a substantial number of missing values. In this particular instance, it was determined that individuals with over 20 missing values were excluded from the dataset to mitigate the potential for biased estimate. Regarding the columns that exhibited a missing value rate over $25\%$, the decision was made to exclude \texttt{mom\_smoke\_pp1}, \texttt{childasd}, and \texttt{mom\_smoke\_pp2} from the dataset. In the subsequent sections, we use multiple imputation and mediation analysis to investigate the association between smoking during pregnancy, drug use/environmental cigarette smoke, and deficiencies in self-regulation.
+
+```{r, echo=FALSE}
+number_of_missing_each_row = c()
+for(i in 1:dim(project_one)[1]){
+  a = rowSums(is.na(project_one[i,]))
+  a = as.numeric(a)
+  project_one$number_of_missing_each_row[i] = a
+}
+```
+
+```{r, echo=FALSE}
+project_one = project_one %>%
+  filter(number_of_missing_each_row < 20)
+```
+
+```{r, echo=FALSE}
+missing_data_stats = project_one %>%
+  summarise_all(list(~sum(is.na(.))))
+
+p_missing = unlist(lapply(project_one, function(x) sum(is.na(x))))/nrow(project_one)
+
+missing_percentage = sort(p_missing[p_missing > 0.25], decreasing = TRUE)
+```
+
+```{r,echo=FALSE}
+project_one = project_one %>%
+  dplyr::select(-c(mom_smoke_pp1, childasd, mom_smoke_pp2, mom_smoke_pp))
+```
+
+### Multiple imputation
+
+In order to address the issue of the missing value, the multiple imputation approach will be employed. Multiple imputations are a statistical methodology employed to address the issue of missing data within the context of research projects. The occurrence of missing data might arise when participants are required to provide responses to particular queries or when data points are unavailable due to different factors. The objective of multiple imputations is to estimate or impute missing values by utilizing the available observable data, resulting in the creation of numerous imputed datasets that are deemed reasonable. [@sterne2009]
+
+To effectively apply multiple imputation methods for handling missing data, it is necessary to assess if the dataset satisfies the assumption of Missing at Random (MAR). There exists a correlation between the presence of missing values and some measured variables, whereas no correlation is seen between the presence of missing values and the variable that possesses those missing values.The symbol $R \perp\!\!\!\!\perp X$ represents the perpendicularity relation between two geometric objects. Let X be the variable that encompasses missing values, and Y be the other measured variable. It is observed that $X_i$, but the probability of $R_i$ being equal to 1 given $X_i$ and $Y_i$ is equal to the probability of $R_i$ being equal to 1 given $Y_i$. ( \textit{i.e.,} $Pr(R_i=1|X_i, Y_i ) = Pr(R_i=1|Y_i)$ )
+
+To effectively utilize multiple imputation approaches, it is necessary to assess whether the missing pattern adheres to the premise of missing at random. This study aims to examine and evaluate the features of smoke exposure from maternal or partner sources over various time periods in individuals, with the objective of elucidating the association between smoking during pregnancy and its effects. We then carried out Pearson's Chi-squared tests to compare the proportions of the two groups seperatly for each smoking status or exposure to smoking status.
+
+```{r,echo=FALSE}
+project_one %>%
+  mutate(loss_followup = is.na(mom_smoke)) %>%
+  dplyr::select(c(smoke_exposure_6mo, smoke_exposure_12mo,
+           smoke_exposure_2yr, smoke_exposure_3yr , 
+           smoke_exposure_4yr, smoke_exposure_5yr,
+           loss_followup,cotimean_34wk,
+           cotimean_pp6mo, cotimean_pp6mo_baby,tethnic, taian, tasian, tnhpi, 
+            tblack, twhite, trace_other, pethnic,
+            paian, pasian, pnhpi, pblack, pwhite,
+            prace_other)) %>%
+  tbl_summary(by = "loss_followup",
+              statistic = list(all_continuous() ~ "{mean} ({sd})"),
+              missing_text = "MISSING") %>%
+  add_p() %>%
+  modify_header(label = "**Characteristics**", 
+                stat_1 = "**Provide whether SDP, N=25**",
+                stat_2 = "**Not provide whether SDP, N=8**") %>%
+  as_kable_extra(booktabs = TRUE,
+                 format = "latex",
+                 longtable = TRUE,
+                 caption = "Baseline characteristics of partipants with or 
+                 without information for smoking during pregnancy.") %>%
+  kable_styling(font_size = 7, latex_options = "hold_position")
+```
+
+Based on the R-output, it is evident that several variables exhibited p-values below the significance level of $\alpha=0.05$. Consequently, it can be concluded that statistically significant differences exist for the variables \texttt{cotimean\_pp6mo\_baby}, \texttt{twhite}, \texttt{pwhite}, and \texttt{prace\_other}. From the investigations above, we can conclude that the missingness in the answer of whether smoking during pregnancy is not MCAR, since the missingness depends on the participants' characteristics. Our investigation focused on investigating the potential mediating role of self-regulation deficiencies in the relationship between smoking during pregnancy and drug use as well as exposure to ambient tobacco smoke over a period of time. Only the significant variables will be included in our dataset. In this particular instance, the choice was made to exclude specific characteristics pertaining to both children and parents from the dataset. Currently, our dataset contains a limited sample of 33 people who provided responses to questionnaires in an observational setting.
+
+```{r,echo=FALSE}
+project_one = project_one %>%
+  dplyr::select(-c(tethnic, taian, tasian, tnhpi, 
+            tblack, twhite, trace_other, pethnic,
+            paian, pasian, pnhpi, pblack, pwhite,
+            prace_other, mom_smoke_16wk, mom_smoke_22wk,
+            mom_smoke_32wk,
+            mom_smoke_pp12wk, mom_smoke_pp6mo,income))
+```
+
+```{r,echo=FALSE}
+project_one$psex = as.factor(project_one$psex)
+project_one$plang = as.factor(project_one$plang)
+project_one$employ = as.factor(project_one$employ)
+project_one$pedu = as.factor(project_one$pedu)
+project_one$swan_inattentive = as.factor(project_one$swan_inattentive)
+project_one$swan_hyperactive = as.factor(project_one$swan_hyperactive)
+```
+
+To ensure the replicability of our multiple imputations procedure, we initialized the random number generator seed to a fixed value of 2550. To enhance clarity, we will employ the numerical value of 20 at the present moment. Meanwhile, we used default method to perform multiple imputation method. The output object would be S3 object of class mids ( \textit{i.e.,} Multiply imputed data set). Based on the data from the statistical software package R, it is evident that the predictive mean matching technique was employed for imputing numerical variables. Both the Bayesian polytomous regression model and the logistic regression model were employed for the purpose of imputing categorical variables.
+
+```{r,echo=FALSE,include=FALSE}
+mice_project_one = mice(project_one,m=20,seed=2550)
+```
+
+```{r,echo=FALSE}
+imp_tot2 = mice::complete(mice_project_one, action="long", include = TRUE)
+```
+
+```{r,warning=FALSE,echo=FALSE}
+densityplot(mice_project_one)
+```
+
+The red line signifies the data that has been estimated or filled in, whereas the blue line represents the data that has been directly observed. Based on the aforementioned plots, it can be observed that the central trends of the density plots of imputed data exhibit a notable degree of similarity. In this particular scenario, it may be asserted that the imputation values assigned to missing data tend to approach the values that have been observed.
+
+### Mediation analysis
+
+Mediation analysis is commonly employed in research to evaluate the extent to which the impact of a treatment is accounted for, or not accounted for, by a certain set of potential mediators. In mediation analysis, there are typically two effects of interest: direct and indirect effects. The direct effects refer to the effect of the treatment on an outcome that is not through the mediator. The indirect effects refer to the effect of a treatment on an outcome through a mediator [@pearl2013]. The controlled direct effect refers to a scenario where a hypothetical intervention is implemented to manipulate the mediator to a certain value. On the other hand, the natural direct effect pertains to a situation where the inherent relationship between the exposure and the mediator remains unchanged. The above-described difference between natural direct effect and controlled direct effect works the same for indirect effect. Since we want to decompose the total effects into direct and indirect effects, we are going to focus on natural direct and indirect effects.
+
+Following Robin's and Pearl's [@pearl2013a] papers, we know the formula for indirect effect or causal mediation effects for each unit $i$ would be:
+
+$$
+\delta_i(a) \equiv Y_i^{a,M_i(1)} - Y_i^{a,M_i(0)},
+$$
+
+for each treatment status \$a = 0, 1\$. Following the \texttt{mediation} package [@mediation-2] average causal mediation effect can be expressed as the following formula:
+
+$$
+\bar{\delta}(a) \equiv E[Y^{a,M(1)} - Y^{a,M(0)}]  
+$$
+
+$$
+= \int \int E[Y_i | M_i = m | A_i = a, X_i = x] \left\{dF_{M_i|A_i = 1, X_i = x}(m) - dF_{M_i|A_i = 0, X_i = x}(m) \right\} \ dF_{X_i}(x)
+$$
+
+By using the weak law of large number (WLLN), we can state that $\bar{\delta}(a) \overset{p}{\rightarrow} \delta_i(a)$ and $\bar{\delta}(a)$ is a consistent estimator for $\delta_i(a)$. In this case, in the following parts, we will estimate the average causal mediation effect (ACME) instead of indirect effect for each individual. As for the direct effect, we also follow the Robin's and Pearl's [@pearl2013b] papers the formula would be:
+
+$$
+\xi_i(a) \equiv Y_i^{1,M_i(a)} - Y_i^{0,M_i(a)},
+$$for each unit $i$ and each treatment status $a=0,1$. Following the \texttt{mediation} package [@mediation] average direct effect can be expressed as the following formula:
+
+$$
+\bar{\xi}(a) \equiv E\left[Y^{1,M(a)} - Y^{0,M(a)}\right] 
+$$
+
+$$
+= \int \int \left\{ E[Y_i |M_i = m, A_i = 1, X_i = x] - E[Y_i |M_i=m,A_i = 0, X_i=x] \right\} dF_{M_i |A_i = t, X_i=x}(m) dF_{X_i}(x)
+$$
+
+Similar to ACME, our focus will be on the average direct effect (ADE) rather than the direct effect for individual respondents. To construct confidence interval, we will employ the Rubin's rule. Rubin's rule will be employed to establish the confidence interval for the physical score and mental score. Let $Q_\ell$ denote the quantity of interest from $\ell^{\text{th}}$ imputation, the average quantity of interest would be:
+
+$$
+\bar{Q} = \frac{1}{m} \sum^m_{\ell=1} \hat{Q}_\ell,
+$$
+
+The confidence interval follows Rubin's rules combining the individual estimates and standard errors (SE) from each of the m imputed datasets into an overall MI estimate and SE. Average within imputation variance:
+
+$$
+\bar{U} = \frac{1}{m} \sum^m_{\ell=1} \hat{U}_{\ell}, 
+$$
+
+where $U_\ell$ denotes the variance of $Q_\ell$. Between imputation variance:
+
+$$
+B = \frac{1}{m} \sum^m_{\ell=1} \left(\hat{Q_\ell} - \bar{Q} \right)^\top \left(\hat{Q_\ell} - \bar{Q} \right)
+$$
+
+The total variance would be:
+
+$$
+T = \bar{U} + B + \frac{B}{m}
+$$
+
+Confidence intervals for pooled estimates can be obtained using the pooled standard error $\sqrt{T}$ and a reference $t$ distribution with degrees of freedom
+
+$$
+\nu = (m-1) \left(1+r_m^{-1}\right)^2, 
+$$
+
+where $r_m = \frac{\left(B+\frac{B}{m}\right)}{\bar{U}}$ is the relative increase in variance that is due to the missing values. And the $(1-\alpha) \%$ confidence interval would be:
+
+$$
+\bar{Q} \pm t_\nu \left(\alpha/2 \right) \cdot \sqrt{T}
+$$
+
+In our study, we decided to employ
+
+\newpage
+
+### Code appendix
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE, include=TRUE}
+
+```
