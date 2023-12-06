@@ -5,7 +5,7 @@ Examine effects of SDP/ETS on adolescent self-regulation, substance use, and ext
 Caiwei Xiong 
 
 ## Abstract 
-**Background:**
+**Background:** This study builds upon a prior investigation focused on smoke avoidance interventions aimed at reducing smoking and environmental tobacco smoke (ETS) exposure among low-income women (N=738) during pregnancy, as well as limiting ETS exposure to children in the immediate postpartum period. For the current study, a random selection of adolescents (N=100) and their mothers, originally participating in the previous study, were recruited. Participants will be evaluated using baseline data, with two subsequent longitudinal follow-up assessments scheduled at 6 and 12 months post-baseline.
 
 
 **Methods:**
