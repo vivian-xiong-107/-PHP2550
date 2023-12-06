@@ -19,6 +19,19 @@ Caiwei Xiong
 
 
 ## Packages
+All code contained within the R Markdown (Rmd) file is compatible with R version 4.2.1 and can be successfully compiled. The following part lists the packages and their corresponding versions that will be used:
+
+gtsummary (1.7.2)
+
+tidyverse (1.3.2)
+
+gt (0.9.0)
+
+kableExtra (1.3.4)
+
+mice (3.15.0)
+
+dplyr (1.1.3)
 
 ## Files
 
