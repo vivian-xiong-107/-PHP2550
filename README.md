@@ -18,7 +18,7 @@ Caiwei Xiong
 
 
 ## Dataset
-The dataset was obtained through the implementation of the research protocol titled "Prenatal Tobacco Exposure: Self-Regulatory Pathways to Externalizing Behaviours." 
+The dataset was obtained through the implementation of the research protocol titled *"Prenatal Tobacco Exposure: Self-Regulatory Pathways to Externalizing Behaviours."*
 
 ## Packages
 All code contained within the R Markdown (Rmd) file is compatible with R version 4.2.1 and can be successfully compiled. The following part lists the packages and their corresponding versions that will be used:
