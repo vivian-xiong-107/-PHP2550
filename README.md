@@ -47,4 +47,4 @@ Data resourse: The dataset was obtained through the implementation of the resear
 The project1.Rmd is the rmarkdown file for the methods and analysis plan.
 
 ## Acknowledgement
-This project represents a collaborative effort, involving Dr. Lauren Micalizzi from the Department of Behavioral and Social Science (lauren_micalizzi@brown.edu), and is under the guidance of Dr. Alice Paul (alice_paul@brown.edu)."
+This project represents a collaborative effort, involving Dr. Lauren Micalizzi from the Department of Behavioral and Social Science (lauren_micalizzi@brown.edu), and is under the guidance of Dr. Alice Paul (alice_paul@brown.edu).
