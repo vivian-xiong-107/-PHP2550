@@ -1,4 +1,4 @@
-#  PHP2550 Project1
+#  PHP2550 project1
 
 Caiwei Xiong 
 
