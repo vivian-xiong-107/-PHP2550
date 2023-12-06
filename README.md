@@ -1,4 +1,6 @@
 #  PHP2550 project1
+Examine effects of SDP/ETS on adolescent self-regulation, substance use, and externalizing
+
 
 Caiwei Xiong 
 
