@@ -11,10 +11,10 @@ Caiwei Xiong
 **Methods:**  Exploratory Data Analysis (EDA) will be conducted for both the original and the current studies. The EDA process will encompass an analysis of baseline data, supplemented by two longitudinal follow-up assessments scheduled at 6 and 12 months post-baseline. This approach aims to provide comprehensive insights into the progression and outcomes of the studies over time.
 
 
-**Results:**
+**Results:** The data does not reveal a statistically significant correlation between the smoking status of parents during pregnancy and the diagnosis of Autism Spectrum Disorder (ASD), attention-related problems, or hyperactive and inattentive behaviors typically associated with ADHD. This suggests that prenatal exposure to smoking may not have a direct or singular influence on these particular developmental outcomes. Furthermore, our exploration into substance use revealed that adolescents whose parents are heavy smokers reported a higher incidence of lifetime substance use, particularly alcohol, which was statistically significant. However, current use of substances like cigarettes, electronic cigarettes, and marijuana in the past 30 days did not show significant differences across the groups. This indicates that while there is a notable association between parental smoking and adolescent experimentation with substances, this does not necessarily translate into ongoing substance use behaviors. Additionally, the lack of significant differences in self-reported externalizing problems among parents, as well as the behavioral manifestations in their children, suggests that factors beyond prenatal smoking exposure may contribute more significantly to these behaviors.
 
 
-**Conclusions:**
+**Conclusions:** Our findings imply that while prenatal smoking exposure has some association with initial substance experimentation in adolescence, its impact on ongoing substance use and other aspects of self-regulation and externalizing behaviors may be limited. These outcomes underscore the complexity of the developmental trajectories impacted by prenatal smoking and highlight the need for a multifaceted approach to understand the full range of influences on adolescent development. It is essential to consider genetic, environmental, and social factors that may interact with prenatal exposure to smoking to affect adolescent well-being.
 
 
 ## Dataset
